@@ -13,7 +13,7 @@ app.use((req, res, next) => {
     next();
 });
 
-app.get('/getLUISIntent', async (req, res) => {
+app.get("/getLUISIntent", async (req, res) => {
     let intents = await LUIS.axiosInstance.get('/intents')
                     .then((resp) => {
                         return resp.data
