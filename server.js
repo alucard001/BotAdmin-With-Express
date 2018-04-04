@@ -6,12 +6,18 @@ const express = require('express')
 const app = express();
 const port = process.env.PORT || 5000
 
+const bodyParser = require("body-parser")
+
 app.use((req, res, next) => {
     res.append('Access-Control-Allow-Origin', ['*']);
     res.append('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
     res.append('Access-Control-Allow-Headers', 'Content-Type');
     next();
 });
+
+// https://scotch.io/tutorials/use-expressjs-to-get-url-and-post-parameters
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({extended: true}))
 
 app.get("/getLUISIntent", async (req, res) => {
     let intents = await LUIS.axiosInstance.get('/intents')
@@ -22,13 +28,16 @@ app.get("/getLUISIntent", async (req, res) => {
 });
 
 app.post('/addUtteranceToIntent', async (req, res) => {
-    console.log("req.params: ", req.params);
+    let data = {
+        text: req.body.text,
+        intentName: req.body.intentName
+    };
 
-    // let result = await LUIS.axiosInstance.post('/example')
-    //                 .then((resp) => {
-    //                     return resp.data
-    //                 });
-    // res.send({ result });
+    let result = await LUIS.axiosInstance.post('/example', data)
+                    .then((resp) => {
+                        return resp.data
+                    });
+    res.send({ result });
 });
 
 app.listen(port, () => {

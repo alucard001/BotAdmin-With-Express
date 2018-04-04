@@ -54,6 +54,7 @@ class App extends Component {
 						intentName: this.state.intent
 					})
 					.then((resp) => {
+						console.log(resp.data);
 						return resp.data
 					});
 			// this.axiosInstance.post('/example', json)
