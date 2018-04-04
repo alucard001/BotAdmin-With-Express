@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
 import axios from 'axios';
+import ReactFileReader from 'react-file-reader';
+import csvReader from 'papaparse';
 
 import './App.css';
 
@@ -23,13 +25,13 @@ class App extends Component {
 	}
 
 	componentDidMount = () => {
-		return this.axiosInstance.get("/getLUISIntent")
-				.then((res) => {
-					// console.log(res.data);
-					this.setState({
-						intentOptions: res.data.intents
-					})
-				})
+		this.axiosInstance.get("/getLUISIntent")
+			.then((res) => {
+				// console.log(res.data);
+				this.setState({ intentOptions: res.data.intents });
+				this.allIntents = res.data.intents;
+			});
+		return;
 	}
 
 	componentDidUpdate = (prevProps, prevState) => {
@@ -57,10 +59,6 @@ class App extends Component {
 						console.log(resp.data);
 						return resp.data
 					});
-			// this.axiosInstance.post('/example', json)
-			// 	.then((res) => {
-			// 		console.log(res.data);
-			// 	});
 		}
 	};
 
@@ -91,6 +89,79 @@ class App extends Component {
 		this.setState({utterance: e.target.value});
 	};
 
+	handleFiles = (files) => {
+		let reader = new FileReader();
+		reader.onload = (e) => {
+			// if(window.confirm("Are you sure you want to import?")){
+				let result = csvReader.parse(reader.result, {
+					header: true,
+					encoding: "UTF-8"
+				});
+				this.imporToLUIS(result);
+			// }
+		};
+		reader.readAsText(files[0]);
+	}
+
+	imporToLUIS = async (res) => {
+		let csvData = res.data;
+
+		// Maximum LUIS batch import count is 100
+		// https://westus.dev.cognitive.microsoft.com/docs/services/5890b47c39e2bb17b84a55ff/operations/5890b47c39e2bb052c5b9c09
+		const maxCount = 100;
+		let fullCSV_Sliced = [];
+
+		// Chunk array into maxCount
+		// https://stackoverflow.com/a/8495740/1802483
+		for (let i = 0, j = csvData.length; i < j; i += maxCount) {
+			fullCSV_Sliced.push(csvData.slice(i, i + maxCount));
+		}
+
+		// each fullCSV_Sliced contains 100 units, index from 0 - 99
+		for (let index = 0; index < fullCSV_Sliced.length; index++) {
+
+			let finalUtterance_IntentList = []
+
+			// Loop through each item within fullCSV_Sliced
+			for (let i = 0; i < fullCSV_Sliced[index].length; i++) {
+				const item = fullCSV_Sliced[index][i];
+
+				if(this.doesIntentExists(item.Intent) === false){
+					// If intent NOT exists in LUIS, add Intent first
+					await axios.post("/createIntent", {name: item.Intent})
+						.then((createIntentRes) => {
+							console.log("createIntentRes: ", createIntentRes);
+							this.allIntents.push({id: createIntentRes.data.id, name: item.Intent});
+						});
+				}
+
+				// If intent already exists in LUIS, add Utterance to Intent
+				finalUtterance_IntentList.push({
+					text: item.Utterance,
+					intentName: item.Intent
+				});
+
+			}
+
+			await axios.post('/batchAddUtteranceToIntent', {finalUtterance_IntentList})
+				.then((resp) => {
+					console.log(resp.data);
+					return resp.data
+				});
+
+		}
+
+	}
+
+	doesIntentExists = (intent) => {
+		for (let index = 0; index < this.allIntents.length; index++) {
+			if(this.allIntents[index].name === intent){
+				return true;
+			}
+		}
+		return false;
+	}
+
 	render() {
 		return (
 			<div className="App">
@@ -117,8 +188,13 @@ class App extends Component {
 							<button className="btn btn-primary" onClick={this.submitToLUIS}>Create</button>
 						</div>
 					</div>
+					<div className="row">
+						<ReactFileReader handleFiles={this.handleFiles}
+							fileTypes={[".csv"]} base64={false} multipleFiles={false}>
+							<button className='btn btn-primary'>Import To LUIS</button>
+						</ReactFileReader>
+					</div>
 				</div>
-
       		</div>
     	);
   	}

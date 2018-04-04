@@ -27,6 +27,27 @@ app.get("/getLUISIntent", async (req, res) => {
     res.send({ intents });
 });
 
+app.post("/createIntent", async (req, res) => {
+    let data = {name: req.body.name}
+    console.log("createIntent", data)
+    // let result = await LUIS.axiosInstance.post('/intents', data)
+    //                 .then((resp) => {
+    //                     return resp.data
+    //                 });
+    res.send({ "id": 1 });
+});
+
+app.post("/batchAddUtteranceToIntent", async (req, res) => {
+    let data = { finalUtterance_IntentList: req.body.finalUtterance_IntentList}
+
+    console.log("batchAddUtteranceToIntent", data)
+    // let result = await LUIS.axiosInstance.post('/intents', data)
+    //                 .then((resp) => {
+    //                     return resp.data
+    //                 });
+    res.send({ "success": true });
+});
+
 app.post('/addUtteranceToIntent', async (req, res) => {
     let data = {
         text: req.body.text,
