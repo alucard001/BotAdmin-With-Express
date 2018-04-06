@@ -2,8 +2,11 @@ import React, { Component } from 'react';
 import axios from 'axios';
 import ReactFileReader from 'react-file-reader';
 import csvReader from 'papaparse';
+import dotenv from 'dotenv'
 
 import './App.css';
+
+dotenv.config();
 
 class App extends Component {
 
@@ -17,7 +20,7 @@ class App extends Component {
 		};
 
 		this.axiosInstance = axios.create({
-			// baseURL: 'http://localhost:5000'
+			baseURL: process.env.SERVER_URL
 		});
 	}
 
