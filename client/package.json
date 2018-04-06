@@ -17,7 +17,6 @@
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject",
-    "build_and_deploy": "npm run build && cd ../ && rm -rf ba && cp -R client/build ba"
-
+    "build_and_deploy": "NODE_ENV=production npm run build && cd ../ && rm -rf ba && cp -R client/build ba"
   }
 }

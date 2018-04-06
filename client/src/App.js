@@ -2,11 +2,12 @@ import React, { Component } from 'react';
 import axios from 'axios';
 import ReactFileReader from 'react-file-reader';
 import csvReader from 'papaparse';
-import dotenv from 'dotenv'
 
 import './App.css';
 
-dotenv.config();
+const dotenv = require('dotenv').config();
+console.log("dotenv: ", dotenv);
+console.log("REACT_APP_SERVER_URL: ", process.env.REACT_APP_SERVER_URL);
 
 class App extends Component {
 
@@ -19,8 +20,21 @@ class App extends Component {
 			intent: ''
 		};
 
+		// I know this is stupid, there is a better way (like putting it in someconfig.js),
+		// just I haven't known that...
+		// There are only 2 values in NODE_ENV: development && production
+		let serverURL = '';
+		switch (process.env.NODE_ENV) {
+			case "production":
+				serverURL = 'http://203.184.176.136:5000';
+				break;
+			case "development":
+			default:
+				serverURL = 'http://localhost:5000';
+				break;
+		}
 		this.axiosInstance = axios.create({
-			baseURL: process.env.SERVER_URL
+			baseURL: serverURL
 		});
 	}
 
