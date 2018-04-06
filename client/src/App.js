@@ -5,9 +5,7 @@ import csvReader from 'papaparse';
 
 import './App.css';
 
-const dotenv = require('dotenv').config();
-console.log("dotenv: ", dotenv);
-console.log("REACT_APP_SERVER_URL: ", process.env.REACT_APP_SERVER_URL);
+require('dotenv').config();
 
 class App extends Component {
 
@@ -20,21 +18,8 @@ class App extends Component {
 			intent: ''
 		};
 
-		// I know this is stupid, there is a better way (like putting it in someconfig.js),
-		// just I haven't known that...
-		// There are only 2 values in NODE_ENV: development && production
-		let serverURL = '';
-		switch (process.env.NODE_ENV) {
-			case "production":
-				serverURL = 'http://203.184.176.136:5000';
-				break;
-			case "development":
-			default:
-				serverURL = 'http://localhost:5000';
-				break;
-		}
 		this.axiosInstance = axios.create({
-			baseURL: serverURL
+			baseURL: process.env.REACT_APP_SERVER_URL
 		});
 	}
 
@@ -143,7 +128,9 @@ class App extends Component {
 			for (let i = 0; i < fullCSV_Sliced[index].length; i++) {
 				const item = fullCSV_Sliced[index][i];
 
-				if(this.doesIntentExists(item.Intent) === false){
+				if (item.Intent === "") { continue; }
+
+				if (this.doesIntentExists(item.Intent) === false){
 					// If intent NOT exists in LUIS, add Intent first
 					await axios.post("/createIntent", {name: item.Intent})
 						.then((createIntentRes) => {
@@ -157,7 +144,6 @@ class App extends Component {
 					text: item.Utterance,
 					intentName: item.Intent
 				});
-
 			}
 
 			await axios.post('/batchAddUtteranceToIntent', {finalUtterance_IntentList})
@@ -165,9 +151,7 @@ class App extends Component {
 					console.log(resp.data);
 					return resp.data
 				});
-
 		}
-
 	}
 
 	doesIntentExists = (intent) => {

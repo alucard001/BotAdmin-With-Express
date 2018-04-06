@@ -6,7 +6,7 @@
         "client": "cd client && npm start",
         "server": "nodemon server.js",
         "start_server": "forever -w start server.js -l /usr/local/httpd/htdocs/botadmin/forever.log",
-	"stop_server": "forever stopall",
+	    "stop_server": "forever stopall",
         "dev": "concurrently --kill-others-on-fail \"npm run server\" \"npm run client\""
     },
     "dependencies": {
